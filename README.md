@@ -16,15 +16,17 @@ Infrared dim and small target detection is a key technology for space-based infr
 
 [A dataset for infrared detection and tracking of dim-small aircraft targets under ground / air background](http://www.csdata.org/p/387/)
 
-### DATA Prepare
-
+## Prepare 
 ```text
-train.txt (store train data)
+data/train.txt (store train data)
 
+path xc,yc,idx
+e.g. path 102,85,0
 
-test.txt (store test data)
+data/test.txt (store test data)
 
-
+path xc,yc,idx
+e.g. path 102,85,0
 ```
 
 
@@ -55,7 +57,7 @@ python train.py
 Define Model information in centernet.py
 ```python
     _defaults = {
-        "model_path": 'logs/best.pt',
+        "model_path": 'logs/best.pth',
         "classes_path": 'data/classes.txt',
         "backbone": "swin",
         "image_size": [256, 256, 3],
@@ -72,7 +74,7 @@ python predict.py
 Define Model information in centernet.py
 ```python
     _defaults = {
-        "model_path": 'logs/best.pt',
+        "model_path": 'logs/best.pth',
         "classes_path": 'data/classes.txt',
         "backbone": "swin",
         "image_size": [256, 256, 3],
@@ -98,7 +100,23 @@ python eval.py
 | TLLICM (2019)        | 0.347  | 0.931     | 0.506 | -144027  | 30  | Core i7-7700K | Python+Matlab |
 | YOLOV5 (2020)        | 0.291  | 0.978     | 0.449 | -4070    | 100 | GTX 1080TI    | Python        |
 | AGPCNET              | 0.063  | 0.159     | 0.090 | -29455   |  2  | Tesla T4      | Python        |
-ReCall 0.063 Precision 0.159 F1 0.090 Score -29445
+
 ## [TODO](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
 
-![](https://img.shields.io/badge/TensorRT_Deploy-blue)
+- [ ] ![](https://img.shields.io/badge/TensorRT_Deploy-blue)
+
+- [ ] **Sahi support** [Demo](https://www.bilibili.com/video/BV1Rq4y1i7HY?share_source=copy_web)
+
+
+
+## [Support By](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
+
+[bubbliiiing/centernet-pytorch](https://github.com/bubbliiiing/centernet-pytorch)
+
+## [Citation](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
+
+@article{
+      title={Infrared Dim Small Target Detection Based On U-Transformer}, 
+      author={Jian Lin},
+      year={2022}
+}
