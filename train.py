@@ -109,6 +109,7 @@ if __name__ == "__main__":
     backbone = "swin"
     weights = ''
     Cuda = True
+    random_seed = None
     # ----------------------------------------#
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
@@ -148,7 +149,7 @@ if __name__ == "__main__":
     val_split = 0.1
     with open(annotation_path) as f:
         lines = f.readlines()
-    np.random.seed(10101)
+    np.random.seed(random_seed)
     np.random.shuffle(lines)
     np.random.seed(None)
     num_val = int(len(lines) * val_split)
