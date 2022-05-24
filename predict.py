@@ -1,13 +1,12 @@
 
 from PIL import Image
-from PIL import ImageFilter
 import glob
 import cv2
 import numpy as np
 
 from centernet import CenterNet
 
-imgs = glob.glob(r'../test/*.bmp')
+imgs = glob.glob('/home/mat/Desktop/dataset/test/test/*.bmp')
 
 
 def fun(path):
@@ -26,7 +25,6 @@ if VideoOut:
 for i, img in enumerate(imgs):
     image = Image.open(img)
     image = image.convert('RGB')
-    # image = image.filter(ImageFilter.SMOOTH)
     if PipelineFilter:
         r_image = centernet.detect_piple(image)
     else:

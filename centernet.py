@@ -49,7 +49,7 @@ def preprocess_image(image):
 
 class CenterNet(object):
     _defaults = {
-        "model_path": 'logs/best.pt',
+        "model_path": 'logs/Epoch18-Total_Loss0.0569-Val_Loss0.0675.pth',
         "classes_path": 'data/classes.txt',
         "backbone": "swin",
         "image_size": [256, 256, 3],
@@ -217,20 +217,19 @@ class CenterNet(object):
         elif self.frame == 5:
             self.init_piple(self.data, self.adapt)
         else:
-            # 第一遍遍历 将当前坐标信息填入管道
             num_piple = self.adapt.numpiple()
             for i in range(num_piple):
                 stdx, stdy = self.adapt.piple[i].std()
                 av = np.mean([stdx, stdy])
                 for j, (x, y) in enumerate(boxes):
-                    xc, yc = np.mean(self.adapt.piple[i].data, axis=0)  # 当前管道内的平均坐标值
-                    if (sqrt((xc - x) ** 2) < self.R0 + 3 * av) and (abs(yc - y) < self.R0 + 3 * av):  # 判断目标是否在管道内 而且要求目标是运动的
+                    xc, yc = np.mean(self.adapt.piple[i].data, axis=0)
+                    if (sqrt((xc - x) ** 2) < self.R0 + 3 * av) and (abs(yc - y) < self.R0 + 3 * av): 
                         self.adapt.piple[i].length += 1
-                        del self.adapt.piple[i].data[0]  # 删除第一个存入的数据信息
-                        self.adapt.piple[i].data.append(np.array([x, y]))  # 当前管道数据更新
+                        del self.adapt.piple[i].data[0]
+                        self.adapt.piple[i].data.append(np.array([x, y]))
                     else:
                         self.adapt.piple[i].length -= 1
-                        self.adapt.addpiple(Piple())  # 目标不在当前管道中 当前管道长度减一 并由此创建新的管道
+                        self.adapt.addpiple(Piple()) 
                         self.adapt.piple[-1].data.append(np.array([x, y]))
                         self.adapt.piple[-1].length += 1
                 if self.adapt.piple[i].length >= 5:
@@ -240,11 +239,6 @@ class CenterNet(object):
                     break
         self.frame += 1
 
-        font = ImageFont.truetype(font='model_data/simhei.ttf',
-                                  size=np.floor(3e-2 * np.shape(image)[1] + 0.5).astype('int32'))
-
-        thickness = max((np.shape(image)[0] + np.shape(image)[1]) // self.image_size[0], 1)
-
         if self.frame <= 5:
             for i, c in enumerate(top_label_indices):
                 predicted_class = self.class_names[int(c)]
@@ -253,10 +247,9 @@ class CenterNet(object):
                 top = max(0, np.floor(top).astype('int32'))
                 left = max(0, np.floor(left).astype('int32'))
 
-                # 画框框
                 label = '{} {:.2f}'.format(predicted_class, score)
                 draw = ImageDraw.Draw(image)
-                label_size = draw.textsize(label, font)
+                label_size = draw.textsize(label)
                 label = label.encode('utf-8')
                 # print(label, top, left)
 
@@ -285,10 +278,9 @@ class CenterNet(object):
                 top = max(0, np.floor(top).astype('int32'))
                 left = max(0, np.floor(left).astype('int32'))
 
-                # 画框框
                 label = '{} {:.2f}'.format(predicted_class, score)
                 draw = ImageDraw.Draw(image)
-                label_size = draw.textsize(label, font)
+                label_size = draw.textsize(label)
                 label = label.encode('utf-8')
                 # print(label, top, left)
 
@@ -305,15 +297,15 @@ class CenterNet(object):
         data = np.array(data)
         num_target = len(data[0])
         for _ in range(num_target):
-            adapt.addpiple(Piple())  # 根据目标数实例对象
+            adapt.addpiple(Piple())  
         for i in range(num_target):
-            adapt.piple[i].data.append(data[0][i])  # 数据暂存到管道中
-            xc, yc = data[0][i][0], data[0][i][1]  # 第一帧的目标位置
+            adapt.piple[i].data.append(data[0][i])  
+            xc, yc = data[0][i][0], data[0][i][1]  
             for j in range(1, 5):
                 data_ = data[j]
                 for box in data_:
                     x, y = box
-                    if (abs(xc - x) < self.R0) and (abs(yc - y) < self.R0):  # 判断目标是否在管道内
+                    if (abs(xc - x) < self.R0) and (abs(yc - y) < self.R0): 
                         adapt.piple[i].length += 1
                         xc, yc = x, y
                         adapt.piple[i].data.append(box)

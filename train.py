@@ -1,16 +1,16 @@
+import os
 import time
 import numpy as np
-from sklearn.metrics import log_loss
-from tqdm import tqdm
 import torch
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
-from nets.centernet import CenterNet_Resnet50, CenterNet_Swin
-from nets.centernet_training import focal_loss, reg_l1_loss
+from nets.centernet import CenterNet_Resnet50 ,CenterNet_Swin
+from utils.utils import focal_loss, reg_l1_loss
 from utils.dataloader import CenternetDataset, centernet_dataset_collate
 
 def get_classes(classes_path):
@@ -39,9 +39,9 @@ def fit_one_epoch(net, epoch, epoch_size, epoch_size_val, gen, genval, Epoch, cu
                 break
             with torch.no_grad():
                 if cuda:
-                    batch = [torch.from_numpy(ann).type(torch.FloatTensor).cuda() for ann in batch]
+                    batch = [Variable(torch.from_numpy(ann).type(torch.FloatTensor)).cuda() for ann in batch]
                 else:
-                    batch = [torch.from_numpy(ann).type(torch.FloatTensor)for ann in batch]
+                    batch = [Variable(torch.from_numpy(ann).type(torch.FloatTensor)) for ann in batch]
 
             batch_images, batch_hms, batch_regs, batch_reg_masks = batch
             optimizer.zero_grad()
@@ -61,7 +61,7 @@ def fit_one_epoch(net, epoch, epoch_size, epoch_size_val, gen, genval, Epoch, cu
                                 'total_c_loss': total_c_loss / (iteration + 1),
                                 'lr': get_lr(optimizer)})
             pbar.update(1)
-    
+
     net.eval()
     print('Start Validation')
     with tqdm(total=epoch_size_val, desc=f'Epoch {epoch + 1}/{Epoch}', postfix=dict, mininterval=0.3) as pbar:
@@ -70,9 +70,9 @@ def fit_one_epoch(net, epoch, epoch_size, epoch_size_val, gen, genval, Epoch, cu
                 break
             with torch.no_grad():
                 if cuda:
-                    batch = [torch.from_numpy(ann).type(torch.FloatTensor).cuda() for ann in batch]
+                    batch = [Variable(torch.from_numpy(ann).type(torch.FloatTensor)).cuda() for ann in batch]
                 else:
-                    batch = [torch.from_numpy(ann).type(torch.FloatTensor) for ann in batch]
+                    batch = [Variable(torch.from_numpy(ann).type(torch.FloatTensor)) for ann in batch]
 
                 batch_images, batch_hms, batch_regs, batch_reg_masks = batch
 
@@ -109,7 +109,6 @@ if __name__ == "__main__":
     backbone = "swin"
     weights = ''
     Cuda = True
-    random_seed = None
     # ----------------------------------------#
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
@@ -149,7 +148,7 @@ if __name__ == "__main__":
     val_split = 0.1
     with open(annotation_path) as f:
         lines = f.readlines()
-    np.random.seed(random_seed)
+    np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
     num_val = int(len(lines) * val_split)

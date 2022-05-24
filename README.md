@@ -1,4 +1,4 @@
-# Infrared Dim Small Target Detection Based On U-Transformer (Not stable version , Colab example, dataset google driver is comming, found some bugs)
+# Infrared Dim Small Target Detection Based On U-Transformer
 
 ![](https://img.shields.io/badge/Python-3.8%2B-red)
 ![](https://img.shields.io/badge/Pytorch-1.10%2B-brightgreen)
@@ -7,6 +7,8 @@
 
 <img src="./src/fig2.png" width = "8000" height = "300"/>
 <img src="./src/fig3.png" width = "800" height = "500"  align=center/>
+
+## Update 2022.5.24 Fix training result not same with paper 
 
 ## ABSTRACT
 
@@ -43,7 +45,7 @@ Define Configuration in train.py
     Batch_size = 16
     Init_Epoch = 0
     Total_Epoch = 50
-    backbone = "swim"
+    backbone = "swin"
     Cuda = True
 ```
 training
@@ -102,6 +104,8 @@ python eval.py
 
 ![](https://img.shields.io/badge/TensorRT_Deploy-blue)
 
-## bugs 
+## Bugs 
 ### nvidia P100 traning very slow
-### T4 ok 1080Ti OK 
+
+
+

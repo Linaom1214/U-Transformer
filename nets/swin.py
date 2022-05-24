@@ -10,8 +10,7 @@ import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 from math import sqrt
-import torch.nn.functional as F
-from torchsummary import summary
+
 
 
 class Mlp(nn.Module):
@@ -538,6 +537,7 @@ class SwinTransformer(nn.Module):
 
         self.norm = norm_layer(self.num_features)
         self.apply(self._init_weights)
+
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
             trunc_normal_(m.weight, std=.02)
@@ -584,4 +584,3 @@ class SwinTransformer(nn.Module):
         flops += self.num_features * self.patches_resolution[0] * self.patches_resolution[1] // (2 ** self.num_layers)
         flops += self.num_features * self.num_classes
         return flops
-

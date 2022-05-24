@@ -32,7 +32,6 @@ class EvaluteDatasets(Dataset):
         file_name = data[0]
         image = Image.open(file_name)
         image = image.convert('RGB')
-        # image = image.filter(ImageFilter.SMOOTH)
         image = np.array(image) / 256
         image = np.transpose(image, (2, 0, 1))
         _, file_name = os.path.split(file_name)
@@ -224,17 +223,17 @@ if __name__ == '__main__':
     classes_path = 'data/classes.txt'
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
-    backbone = "swim"
+    backbone = "swin"
     Cuda = True
-    test_annos = "./data/test2022.txt"
+    test_annos = "data/test2022.txt"
 
-    assert backbone in ['resnet50', "swim"]
+    assert backbone in ['resnet50', "swin"]
     if backbone == "resnet50":
         model = CenterNet_Resnet50(num_classes)
     else:
         model = CenterNet_Swin(num_classes)
 
-    model_path = 'logs/best.pt'
+    model_path = 'logs/Epoch18-Total_Loss0.0569-Val_Loss0.0675.pth'
     print('Loading weights into state dict...')
     device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model_dict      = model.state_dict()

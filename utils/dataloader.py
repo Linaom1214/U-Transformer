@@ -35,9 +35,8 @@ class CenternetDataset(Dataset):
         image = Image.open(line[0])
         iw, ih = image.size
         h, w = input_shape
-        box = np.array([np.array(list(map(int, box.split(',')))) for box in line[1:]])  # 仅保存 中心点  x , y 信息
+        box = np.array([np.array(list(map(int, box.split(',')))) for box in line[1:]])
         if not random:
-            # resize image
             scale = min(w / iw, h / ih)
             nw = int(iw * scale)
             nh = int(ih * scale)
@@ -48,8 +47,6 @@ class CenternetDataset(Dataset):
             new_image = Image.new('RGB', (w, h), (128, 128, 128))
             new_image.paste(image, (dx, dy))
             image_data = np.array(new_image, np.float32)
-
-            # correct boxes
             box_data = np.zeros((len(box), 3))
             if len(box) > 0:
                 np.random.shuffle(box)
@@ -102,11 +99,16 @@ class CenternetDataset(Dataset):
         box_data = np.zeros((len(box), 5))
         if len(box) > 0:
             np.random.shuffle(box)
-            box[:, [0]] = box[:, [0]] * nw / iw + dx
-            box[:, [1]] = box[:, [1]] * nh / ih + dy
-            if flip: box[:, [0]] = w - box[:, [0]]
+            box[:, [0, 2]] = box[:, [0, 2]] * nw / iw + dx
+            box[:, [1, 3]] = box[:, [1, 3]] * nh / ih + dy
+            if flip: box[:, [0, 2]] = w - box[:, [2, 0]]
             box[:, 0:2][box[:, 0:2] < 0] = 0
-            box_data = np.zeros((len(box), 3))
+            box[:, 2][box[:, 2] > w] = w
+            box[:, 3][box[:, 3] > h] = h
+            box_w = box[:, 2] - box[:, 0]
+            box_h = box[:, 3] - box[:, 1]
+            box = box[np.logical_and(box_w > 1, box_h > 1)]  # discard invalid box
+            box_data = np.zeros((len(box), 5))
             box_data[:len(box)] = box
 
         return image_data, box_data
@@ -115,7 +117,7 @@ class CenternetDataset(Dataset):
         if index == 0:
             shuffle(self.train_lines)
         lines = self.train_lines
-        img, y = self.get_random_data(lines[index], [self.input_size[0], self.input_size[1]], random=True)
+        img, y = self.get_random_data(lines[index], [self.input_size[0], self.input_size[1]], random=False)
         batch_hm = np.zeros((self.output_size[0], self.output_size[1], self.num_classes), dtype=np.float32)
         batch_reg = np.zeros((self.output_size[0], self.output_size[1], 2), dtype=np.float32)
         batch_reg_mask = np.zeros((self.output_size[0], self.output_size[1]), dtype=np.float32)
@@ -129,7 +131,7 @@ class CenternetDataset(Dataset):
             bbox[0] = np.clip(bbox[0], 0, self.output_size[1] - 1)
             bbox[1] = np.clip(bbox[1], 0, self.output_size[0] - 1)
             cls_id = int(y[i, -1])
-            radius = 3 
+            radius = 3
             ct = np.array([bbox[0], bbox[1]], dtype=np.float32)
             ct_int = ct.astype(np.int32)
             batch_hm[:, :, cls_id] = draw_gaussian(batch_hm[:, :, cls_id], ct_int, radius)
@@ -140,7 +142,6 @@ class CenternetDataset(Dataset):
         return img, batch_hm, batch_reg, batch_reg_mask
 
 
-# DataLoader中collate_fn使用
 def centernet_dataset_collate(batch):
     imgs, batch_hms, batch_regs, batch_reg_masks = [], [], [], []
 

@@ -1,7 +1,9 @@
-import torch
 from torch import nn
-from nets.swin import SwinTransformer
 import torch.nn.functional as F
+
+from nets.swin import SwinTransformer
+
+
 
 class Encode(nn.Module):
     def __init__(self, in_ch, out_ch):
