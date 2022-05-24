@@ -1,5 +1,6 @@
 import time
 import numpy as np
+from sklearn.metrics import log_loss
 from tqdm import tqdm
 import torch
 import torch.backends.cudnn as cudnn
@@ -11,7 +12,6 @@ from torch.utils.tensorboard import SummaryWriter
 from nets.centernet import CenterNet_Resnet50, CenterNet_Swin
 from nets.centernet_training import focal_loss, reg_l1_loss
 from utils.dataloader import CenternetDataset, centernet_dataset_collate
-from eval import VocEvaluate
 
 def get_classes(classes_path):
     '''loads the classes'''
@@ -26,10 +26,11 @@ def get_lr(optimizer):
         return param_group['lr']
 
 
-def fit_one_epoch(net, epoch, epoch_size, gen, Epoch, cuda, evalor):
+def fit_one_epoch(net, epoch, epoch_size, epoch_size_val, gen, genval, Epoch, cuda):
     total_r_loss = 0
     total_c_loss = 0
     total_loss = 0
+    val_loss = 0
 
     net.train()
     with tqdm(total=epoch_size, desc=f'Epoch {epoch + 1}/{Epoch}', postfix=dict, mininterval=0.3) as pbar:
@@ -38,12 +39,13 @@ def fit_one_epoch(net, epoch, epoch_size, gen, Epoch, cuda, evalor):
                 break
             with torch.no_grad():
                 if cuda:
-                    batch = [Variable(torch.from_numpy(ann).type(torch.FloatTensor)).cuda() for ann in batch]
+                    batch = [torch.from_numpy(ann).type(torch.FloatTensor).cuda() for ann in batch]
                 else:
-                    batch = [Variable(torch.from_numpy(ann).type(torch.FloatTensor)) for ann in batch]
+                    batch = [torch.from_numpy(ann).type(torch.FloatTensor)for ann in batch]
 
             batch_images, batch_hms, batch_regs, batch_reg_masks = batch
             optimizer.zero_grad()
+
             hm, offset = net(batch_images)
             c_loss = focal_loss(hm, batch_hms)
             off_loss = reg_l1_loss(offset, batch_regs, batch_reg_masks)
@@ -59,20 +61,39 @@ def fit_one_epoch(net, epoch, epoch_size, gen, Epoch, cuda, evalor):
                                 'total_c_loss': total_c_loss / (iteration + 1),
                                 'lr': get_lr(optimizer)})
             pbar.update(1)
-
+    
     net.eval()
-    print('Start Eval')
-    evalor.pred(net)
-    F1, Recall, Precision = evalor.get_map()
-    global BEST_F1
-    if F1 > BEST_F1:
-        torch.save(model.state_dict(), 'logs/best.pt')
-        BEST_F1 = F1
-    print("-------------------------------")
-    print("---- Best F1", round(BEST_F1, 3), " -----")
-    print("---- Current F1", round(F1, 3), " -----")
-    print("-------------------------------")
-    return total_loss / (epoch_size + 1), [F1, Recall, Precision]
+    print('Start Validation')
+    with tqdm(total=epoch_size_val, desc=f'Epoch {epoch + 1}/{Epoch}', postfix=dict, mininterval=0.3) as pbar:
+        for iteration, batch in enumerate(genval):
+            if iteration >= epoch_size_val:
+                break
+            with torch.no_grad():
+                if cuda:
+                    batch = [torch.from_numpy(ann).type(torch.FloatTensor).cuda() for ann in batch]
+                else:
+                    batch = [torch.from_numpy(ann).type(torch.FloatTensor) for ann in batch]
+
+                batch_images, batch_hms, batch_regs, batch_reg_masks = batch
+
+                hm, offset = net(batch_images)
+                c_loss = focal_loss(hm, batch_hms)
+                off_loss = reg_l1_loss(offset, batch_regs, batch_reg_masks)
+                loss = c_loss + off_loss
+
+                val_loss += loss.item()
+
+            pbar.set_postfix(**{'total_loss': val_loss / (iteration + 1)})
+            pbar.update(1)
+
+    print('Finish Validation')
+    print('Epoch:' + str(epoch + 1) + '/' + str(Epoch))
+    print('Total Loss: %.4f || Val Loss: %.4f ' % (total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
+
+    print('Saving state, iter:', str(epoch + 1))
+    torch.save(model.state_dict(), 'logs/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth' % (
+    (epoch + 1), total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
+    return  {'total_loss': total_loss / (epoch_size + 1),'val_loss': val_loss / (epoch_size_val + 1)}
 
 
 if __name__ == "__main__":
@@ -86,9 +107,8 @@ if __name__ == "__main__":
     Init_Epoch = 0
     Total_Epoch = 50
     backbone = "swin"
-    weights = 'logs/best.pt'
+    weights = ''
     Cuda = True
-    BEST_F1 = 0
     # ----------------------------------------#
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
@@ -103,16 +123,21 @@ if __name__ == "__main__":
         device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model_dict      = model.state_dict()
         pretrained_dict = torch.load(weights, map_location = device)
-        model_dict.update(pretrained_dict)
+        load_key, no_load_key, temp_dict = [], [], {}
+        for k, v in pretrained_dict.items():
+            if k in model_dict.keys() and np.shape(model_dict[k]) == np.shape(v):
+                temp_dict[k] = v
+                load_key.append(k)
+            else:
+                no_load_key.append(k)
+        model_dict.update(temp_dict)
         model.load_state_dict(model_dict)
+        print("\nFail To Load Key:", str(no_load_key)[:500], "……\nFail To Load Key num:", len(no_load_key))
 
     # ------------------Tensorboard---------------------------#
     link_mask = time.strftime('%Y%m%d-%H%M', time.localtime())
     tb_writer = SummaryWriter(log_dir=f"logs/{link_mask}")
-    evalor = VocEvaluate()
 
-    with  open(f"logs/{link_mask}/logs.txt", "w") as f:
-        f.write("Epoch    \tF1    \tRecall    \tPrecision    \n")
 
     net = model.train()
 
@@ -120,37 +145,30 @@ if __name__ == "__main__":
         cudnn.benchmark = True
         net = net.cuda()
 
+    val_split = 0.1
     with open(annotation_path) as f:
         lines = f.readlines()
     np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
-    num_train = len(lines)
+    num_val = int(len(lines) * val_split)
+    num_train = len(lines) - num_val
 
 
     optimizer = optim.Adam(net.parameters(), lr, weight_decay=5e-4)
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=2, verbose=True)
 
     train_dataset = CenternetDataset(lines[:num_train], input_shape, num_classes, True)
-    gen = DataLoader(train_dataset, batch_size=Batch_size, num_workers=8, pin_memory=True,
-                        drop_last=True, collate_fn=centernet_dataset_collate)
+    val_dataset = CenternetDataset(lines[num_train:], input_shape, num_classes, False)
+    gen = DataLoader(train_dataset, batch_size=Batch_size, num_workers=2, pin_memory=True,
+                     drop_last=True, collate_fn=centernet_dataset_collate)
+    gen_val = DataLoader(val_dataset, batch_size=Batch_size, num_workers=2, pin_memory=True,
+                         drop_last=True, collate_fn=centernet_dataset_collate)
 
     epoch_size = num_train // Batch_size
-
-    net.freeze_backbone()
-
+    epoch_size_val = num_val // Batch_size
     for epoch in range(Init_Epoch, Total_Epoch):
-        val_loss, class_info = fit_one_epoch(net, epoch, epoch_size, gen, Total_Epoch, Cuda,
-                                                evalor)
-        lr_scheduler.step(val_loss)
-
-        F1, Recall, Precision = class_info[0], class_info[1], class_info[2]
-
-        tb_writer.add_scalar("F1", F1, epoch)
-        tb_writer.add_scalar("Recall", Recall, epoch)
-        tb_writer.add_scalar("Precision", Precision, epoch)
-
-        with open(f"logs/{link_mask}/logs.txt", "a") as f:
-            f.write(
-                f"{epoch}    \t{round(F1, 3)}    \t{round(Recall, 3)}    \t{round(Precision, 3)}")
-            f.write("\n")
+        loss = fit_one_epoch(net, epoch, epoch_size, epoch_size_val, gen, gen_val, Total_Epoch, Cuda)
+        lr_scheduler.step(loss['val_loss'])
+        tb_writer.add_scalar('val_loss', loss['val_loss'], epoch)
+        tb_writer.add_scalar('total_loss', loss['total_loss'], epoch)

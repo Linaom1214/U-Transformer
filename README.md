@@ -98,7 +98,10 @@ python eval.py
 | TLLICM (2019)        | 0.347  | 0.931     | 0.506 | -144027  | 30  | Core i7-7700K | Python+Matlab |
 | YOLOV5 (2020)        | 0.291  | 0.978     | 0.449 | -4070    | 100 | GTX 1080TI    | Python        |
 | AGPCNET              | 0.063  | 0.159     | 0.090 | -29455   |  2  | Tesla T4      | Python        |
-ReCall 0.063 Precision 0.159 F1 0.090 Score -29445
 ## [TODO](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
 
 ![](https://img.shields.io/badge/TensorRT_Deploy-blue)
+
+## bugs 
+### nvidia P100 traning very slow
+### T4 ok 1080Ti OK 

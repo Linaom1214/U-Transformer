@@ -96,9 +96,18 @@ class CenterNet(object):
 
         print('Loading weights into state dict...')
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        state_dict = torch.load(self.model_path, map_location=device)
-        self.centernet.load_state_dict(state_dict, strict=True)
-        self.centernet = self.centernet.eval()
+        model_dict      = self.centernet.state_dict()
+        pretrained_dict = torch.load(self.model_path, map_location = device)
+        load_key, no_load_key, temp_dict = [], [], {}
+        for k, v in pretrained_dict.items():
+            if k in model_dict.keys() and np.shape(model_dict[k]) == np.shape(v):
+                temp_dict[k] = v
+                load_key.append(k)
+            else:
+                no_load_key.append(k)
+        model_dict.update(temp_dict)
+        self.centernet.load_state_dict(model_dict)
+        print("\nFail To Load Key:", str(no_load_key)[:500], "……\nFail To Load Key num:", len(no_load_key))
 
         if self.cuda:
             os.environ["CUDA_VISIBLE_DEVICES"] = '0'
