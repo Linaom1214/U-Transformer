@@ -1,4 +1,4 @@
-# Infrared Dim Small Target Detection Based On U-Transformer
+# Infrared Dim Small Target Detection Based On U-Transformer (Not stable version , Colab example, dataset google driver is comming, found some bugs)
 
 ![](https://img.shields.io/badge/Python-3.8%2B-red)
 ![](https://img.shields.io/badge/Pytorch-1.10%2B-brightgreen)
