@@ -537,7 +537,7 @@ class SwinTransformer(nn.Module):
             self.layers.append(layer)
 
         self.norm = norm_layer(self.num_features)
-
+        self.apply(self._init_weights)
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
             trunc_normal_(m.weight, std=.02)
