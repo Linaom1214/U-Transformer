@@ -4,6 +4,7 @@ from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 from tqdm import tqdm
+import sys
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -233,8 +234,8 @@ if __name__ == '__main__':
     else:
         model = CenterNet_Swin(num_classes)
 
-    model_path = 'logs/Epoch18-Total_Loss0.0569-Val_Loss0.0675.pth'
-    print('Loading weights into state dict...')
+    model_path = sys.argv[1]
+    print('Loading weights into state dict...', model_path)
     device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model_dict      = model.state_dict()
     pretrained_dict = torch.load(model_path, map_location = device)

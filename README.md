@@ -78,21 +78,15 @@ python predict.py
 ```
 ### Evaluation
 
-Define Model information in centernet.py
-```python
-    _defaults = {
-        "model_path": 'logs/best.pt',
-        "classes_path": 'data/classes.txt',
-        "backbone": "swin",
-        "image_size": [256, 256, 3],
-        "confidence": 0.5,
-        "cuda": True
-    }
+```shell
+python eval.py ckpt path
 ```
+### select best pth
+```shell
+sh eval.sh > eval_info.txt
+```
+Find best model in eval_info.txt
 
-```
-python eval.py
-```
 ## [Results](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
 
 | Method               | Recall | Precision | F1    | Score    | FPS | Platform      | Language      |
