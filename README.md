@@ -96,8 +96,5 @@ Find best model in eval_info.txt
 
 ![](https://img.shields.io/badge/TensorRT_Deploy-blue)
 
-## Bugs 
-### nvidia P100 traning very slow
-
 
 
