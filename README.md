@@ -1,7 +1,7 @@
 # Infrared Dim Small Target Detection Based On U-Transformer [Under review]
 
 ![](https://img.shields.io/badge/Python-3.8%2B-red)
-![](https://img.shields.io/badge/Pytorch-1.10%2B-brightgreen)
+![](https://img.shields.io/badge/Pytorch-brightgreen)
 ![](https://img.shields.io/badge/Vision_Transformer-brightgreen)
 ![](https://img.shields.io/badge/Infrared_Small_Dim_Target_Detection-yellow)
 
