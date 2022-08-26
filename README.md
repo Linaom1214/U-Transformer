@@ -8,17 +8,9 @@
 <img src="./src/fig2.png" width = "8000" height = "300"/>
 <img src="./src/fig3.png" width = "800" height = "500"  align=center/>
 
-## Update 2022.5.24 Fix training result not same with paper 
-
-## Notice !
-
-When using Nvidia P100 select pytorch version <1.8> !
-
-
 ## Colab Examples
 
 <a href="https://colab.research.google.com/drive/12ZQ8l3WUMVgA4Qfa6tTTUdobnyhRftcG?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-
 
 
 ## ABSTRACT
@@ -35,7 +27,6 @@ Infrared dim and small target detection is a key technology for space-based infr
 train.txt (store train data)
 test.txt (store test data)
 ```
-
 
 ## [Usage](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
 
@@ -100,7 +91,7 @@ Find best model in eval_info.txt
 | ADMD (2020)          | 0.455  | 0.754     | 0.567 | -1082416 | 38  | Core i7-7700K | Python+Matlab |
 | TLLICM (2019)        | 0.347  | 0.931     | 0.506 | -144027  | 30  | Core i7-7700K | Python+Matlab |
 | YOLOV5 (2020)        | 0.291  | 0.978     | 0.449 | -4070    | 100 | GTX 1080TI    | Python        |
-| AGPCNET              | 0.063  | 0.159     | 0.090 | -29455   |  2  | Tesla T4      | Python        |
+
 ## [TODO](#Infrared-Dim-Small-Target-Detection-Based-On-U-Transformer)
 
 ![](https://img.shields.io/badge/TensorRT_Deploy-blue)

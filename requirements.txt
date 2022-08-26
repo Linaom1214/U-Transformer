@@ -2,7 +2,7 @@ numpy
 opencv_python
 Pillow
 timm
-torch
+torch==1.8.1
 torchsummary
 torchvision
 tensorboard
