@@ -1,4 +1,4 @@
-# Infrared Dim Small Target Detection Based On U-Transformer [Under review]
+# Infrared Dim Small Target Detection Based On U-Transformer 
 
 ![](https://img.shields.io/badge/Python-3.8%2B-red)
 ![](https://img.shields.io/badge/Pytorch-brightgreen)
@@ -96,5 +96,14 @@ Find best model in eval_info.txt
 
 ![](https://img.shields.io/badge/TensorRT_Deploy-blue)
 
-
-
+# Cite
+```text
+@article{lin2022infrared,
+  title={Infrared dim and small target detection based on U-Transformer},
+  author={Lin, Jian and Zhang, Kai and Yang, Xi and Cheng, Xiangzheng and Li, Chenhui},
+  journal={Journal of Visual Communication and Image Representation},
+  pages={103684},
+  year={2022},
+  publisher={Elsevier}
+}
+```
